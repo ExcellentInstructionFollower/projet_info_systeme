@@ -20,7 +20,11 @@
         
         yytext[i] = '\0';
         int mantissa = atoi(yytext);
+<<<<<<< HEAD
         int exponent = atoi(&(yytext[i+1]));
+=======
+        int exponent = atoi(yytext + i + 1);
+>>>>>>> 6d1e3c4 (added some vhdl draft code)
         for (int i=0;i<exponent;i++){
             mantissa *= 10;
         }
