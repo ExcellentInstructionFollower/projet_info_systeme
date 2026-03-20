@@ -3,44 +3,56 @@
 %{
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
+#include "y.tab.h"
 %}
 
 %%
 
-[, \t]+	{printf("tSEP : %s ", yytext);};
-"int" {printf("tINT ");}
-"const" {printf("tCON ");}
-"main" {printf("tMAIN ");}
-"printf" {printf("tPRINT ");}
-[0-9]+	{printf("tNB : %s ", yytext);
-	  /*yylval.nb = atoi(yytext);
-	  return tNB;*/
+[, \t]+	{/*return tSEP;*/}
+"int" {return tINT;}
+"const" {return tCON;}
+"main" {return tMAIN;}
+"printf" {return tPRINT;}
+([0-9]+)e([0-9]+) {
+        int i = 0;
+        while (yytext[i] != 'e') {i++;}
+        
+        yytext[i] = '\0';
+        int mantissa = atoi(yytext);
+        int exponent = atoi(yytext + i + 1);
+        for (int i;i<exponent;i++){
+            mantissa *= 10;
+        }
+        yylval.nb = mantissa ;
+
+        return tNB;
 	}
-([0-9]+)e([0-9]+) {printf("tNB : %s ", yytext);
-	  /*yylval.nb = atoi(yytext);
-	  return tNB;*/
+[0-9]+	{
+	  yylval.nb = atoi(yytext);
+	  return tNB;
 	}
-"="	{ printf("tEQUAL "); /*return tEQUAL;*/ }
-"-"	{ printf("tSUB "); /*return tSUB;*/ }
-"+"	{ printf("tADD "); /*return tADD;*/}
-"*"	{ printf("tMUL "); /*return tMUL;*/ }
-"/"	{ printf("tDIV "); /*return tDIV;*/ }
-"("	{ printf("tOP "); /*return tOP;*/ }
-")"	{ printf("tCP "); /*return tCP;*/ }
-"{"	{ printf("tOCB "); /*return tOP;*/ }
-"}"	{ printf("tCCB "); /*return tCP;*/ }
-[A-Za-z][A-Za-z0-9_]*	{ printf("tVAR : %s ", yytext);
-	  /*yylval.var = yytext[0];
-	  return tVAR;*/
+"="	{ return tEQUAL; }
+"-"	{ return tSUB; }
+"+"	{ return tADD; }
+"*"	{ return tMUL; }
+"/"	{ return tDIV; }
+"("	{ return tOP; }
+")"	{ return tCP; }
+"{"	{ return tOP; }
+"}"	{ return tCP; }
+[A-Za-z][A-Za-z0-9_]*	{
+	  yylval.var = yytext;
+	  return tVAR;
 	}
-";" { printf("tCOL ");}
-\n	{ printf("tEOL \n"); /*return tEOL;*/ }
-.	{ printf("tERR "); /*return tERR;*/ }
+";" { return tCOL;}
+\n	{ /*return tEOL;*/ }
+.	{ return tERR; }
 
 %%
 
-int main(void) {
+/*int main(void) {
   printf("Compiler\n"); // yydebug=1;
   yylex();
   return 0;
-}
+}*/
