@@ -20,8 +20,8 @@
         
         yytext[i] = '\0';
         int mantissa = atoi(yytext);
-        int exponent = atoi(yytext + i + 1);
-        for (int i;i<exponent;i++){
+        int exponent = atoi(&(yytext[i+1]));
+        for (int i=0;i<exponent;i++){
             mantissa *= 10;
         }
         yylval.nb = mantissa ;
@@ -42,7 +42,7 @@
 "{"	{ return tOCB; }
 "}"	{ return tCCB; }
 [A-Za-z][A-Za-z0-9_]*	{
-	  yylval.var = yytext;
+	  yylval.var = strdup(yytext);
 	  return tVAR;
 	}
 ";" { return tCOL;}

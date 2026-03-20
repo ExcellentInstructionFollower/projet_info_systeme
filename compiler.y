@@ -1,6 +1,28 @@
 %{
 #include <stdlib.h>
 #include <stdio.h>
+void yyerror(char *s);
+
+const int STACK_BASE = 0xFFFF;
+int stack_pointer = STACK_BASE; 
+
+
+
+const int NB_VARIABLES = 256;
+
+int var_hash(char * var_name) {
+  int res = 0;
+  int i = 0;
+  while (i<8 && var_name[i] != '\0') {
+    res += var_name[i]*i;
+    i++;
+  }
+  return res % NB_VARIABLES;
+}
+
+
+
+int variables[NB_VARIABLES];
 %}
 
 %union {int nb ; char * var;}
@@ -21,9 +43,15 @@ Instruction : Declaration tCOL
       |Attribution tCOL
       |Call tCOL ;
 
-Declaration : tCON tVAR tEQUAL Expr {printf("const %s = %d\n", $2, $4);}
-      | tINT tVAR {printf("int %s\n", $2);}
-      | tINT tVAR tEQUAL Expr {printf("int %s = %d\n", $2, $4);};
+Declaration : tCON ConstChain  {printf("const %s = %d\n", $2, $4);}
+      | tINT IntChain {printf("int %s = %d\n", $2, $4);};
+
+ConstChain : tVAR tEQUAL Expr ConstChain
+      | ;
+
+IntChain : tVAR IntChain
+      | tVAR tEQUAL Expr IntChain
+      | ;
 
 Attribution : tVAR tEQUAL Expr {printf("%s = %d\n", $1, $3);};
 
