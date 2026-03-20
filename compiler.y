@@ -12,20 +12,22 @@
 
 %%
 
-Main : tMAIN tOP tCP tOCB Body tCCB 
+Main : tMAIN tOP tCP tOCB Body  
 
-Body : Declarations Attributions Instructions
+Body : Instruction Body 
+      |tCCB;
 
-Declarations : tCON tVAR tEQUAL Expr tCOL {printf("const %s = %d\n", $2, $4);}
-      | tINT tVAR tCOL {printf("int %s\n", $2);}
-      | tINT Attributions {printf("int");}
-      | {};
+Instruction : Declaration tCOL
+      |Attribution tCOL
+      |Call tCOL ;
 
-Attributions : tVAR tEQUAL Expr tCOL {printf("%s = %d\n", $1, $3);}
-      | {};
+Declaration : tCON tVAR tEQUAL Expr {printf("const %s = %d\n", $2, $4);}
+      | tINT tVAR {printf("int %s\n", $2);}
+      | tINT tVAR tEQUAL Expr {printf("int %s = %d\n", $2, $4);};
 
-Instructions : tPRINT tOP tVAR tCP tCOL Instructions {printf("%s\n", $3);}
-      | {};
+Attribution : tVAR tEQUAL Expr {printf("%s = %d\n", $1, $3);};
+
+Call : tPRINT tOP tVAR tCP tCOL {printf("%s\n", $3);};
 
 
 Expr :		  Expr tADD DivMul { $$ = $1 + $3; }

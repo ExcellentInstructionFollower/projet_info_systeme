@@ -39,8 +39,8 @@
 "/"	{ return tDIV; }
 "("	{ return tOP; }
 ")"	{ return tCP; }
-"{"	{ return tOP; }
-"}"	{ return tCP; }
+"{"	{ return tOCB; }
+"}"	{ return tCCB; }
 [A-Za-z][A-Za-z0-9_]*	{
 	  yylval.var = yytext;
 	  return tVAR;
