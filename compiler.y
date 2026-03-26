@@ -1,6 +1,7 @@
 %{
 #define NB_VARIABLES 256
 #define START_VAR_ADDR 0x1000000
+#define WRITE_SIZE 32
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,6 +12,9 @@ void yyerror(char *s);
 const int STACK_BASE = 0xFFFF;
 int stack_pointer = STACK_BASE; 
 int last_addr = START_VAR_ADDR;
+
+FILE * f_asm;
+FILE * f_opcode;
 
 struct node {
       char * label;
@@ -51,6 +55,65 @@ int get(char * var_name) {
       return -1;
 }
 
+void asm_write(int op, int result, int op1, int op2) {
+      char buffer_asm[WRITE_SIZE];
+      char buffer_op[WRITE_SIZE];
+
+      switch (op) {
+            case 1:  //ADD
+                  sprintf(buffer_asm, "ADD %d %d %d\n", result, op1, op2);
+                  sprintf(buffer_op, "1 %d %d %d\n", result, op1, op2);
+                  break;
+            case 2:  //MUL
+                  sprintf(buffer_asm, "MUL %d %d %d\n", result, op1, op2);
+                  sprintf(buffer_op, "2 %d %d %d\n", result, op1, op2);
+                  break;
+            case 3:  //SUB
+                  sprintf(buffer_asm, "SUB %d %d %d\n", result, op1, op2);
+                  sprintf(buffer_op, "3 %d %d %d\n", result, op1, op2);
+                  break;
+            case 4:  //DIV
+                  sprintf(buffer_asm, "DIV %d %d %d\n", result, op1, op2);
+                  sprintf(buffer_op, "4 %d %d %d\n", result, op1, op2);
+                  break;
+            case 5:  //COP
+                  sprintf(buffer_asm, "COP %d %d\n", result, op1);
+                  sprintf(buffer_op, "5 %d %d\n", result, op1);
+                  break;
+            case 6:  //AFC
+                  sprintf(buffer_asm, "AFC %d %d\n", result, op1);
+                  sprintf(buffer_op, "6 %d %d\n", result, op1);
+                  break;
+            case 7:  //JMP
+                  sprintf(buffer_asm, "JMP %d\n", result);
+                  sprintf(buffer_op, "7 %d\n", result);
+                  break;
+            case 8:  //JMF
+                  sprintf(buffer_asm, "JMF %d %d\n", result, op1);
+                  sprintf(buffer_op, "8 %d %d\n", result, op1);
+                  break;
+            case 9:  //INF
+                  sprintf(buffer_asm, "INF %d %d %d\n", result, op1, op2);
+                  sprintf(buffer_op, "9 %d %d %d\n", result, op1, op2);
+                  break;
+            case 10: //SUP
+                  sprintf(buffer_asm, "SUP %d %d %d\n", result, op1, op2);
+                  sprintf(buffer_op, "10 %d %d %d\n", result, op1, op2);
+                  break;
+            case 11: //EQU
+                  sprintf(buffer_asm, "EQU %d %d %d\n", result, op1, op2);
+                  sprintf(buffer_op, "11 %d %d %d\n", result, op1, op2);
+                  break;
+            case 12: //PRI
+                  sprintf(buffer_asm, "PRI %d\n", result);
+                  sprintf(buffer_op, "12 %d\n", result);
+                  break;
+
+      }
+      fprintf(f_asm, "%s", buffer_asm);
+      fprintf(f_opcode, "%s", buffer_op);   
+}
+
 %}
 
 %union {int nb ; char * var;}
@@ -71,25 +134,22 @@ Instruction : Declaration tCOL
       |Attribution tCOL
       |Call tCOL ;
 
-Declaration : tCON ConstChain  
+Declaration : tCON ConstChain 
       | tINT IntChain;
 
-ConstChain : tVAR tEQUAL Expr ConstChain {printf("const %s = %d\n", $1, $3);
-                                          insert($1);}
+ConstChain : tVAR tEQUAL Expr ConstChain {asm_write(6, insert($1), $3, 0);}
       | ;
 
-IntChain : tVAR IntChain {printf("int %s\n", $1); printf("insert = %d\n", insert($1));}
-      | tVAR tEQUAL Expr IntChain {printf("int %s = %d\n", $1, $3);
-                                    insert($1);}
+IntChain : tVAR IntChain {insert($1);}
+      | tVAR tEQUAL Expr IntChain {asm_write(6, insert($1), $3, 0);}
       | ;
 
-Attribution : tVAR tEQUAL Expr {printf("%s = %d\n", $1, $3);
-                              printf("get(%s) = %d\n", $1, get($1));};
+Attribution : tVAR tEQUAL Expr {asm_write(6, get($1), $3, 0);};
 
-Call : tPRINT tOP tVAR tCP tCOL {printf("%s\n", $3);};
+Call : tPRINT tOP tVAR tCP {asm_write(12, get($3), 0, 0);};
 
 
-Expr :		  Expr tADD DivMul { $$ = $1 + $3; }
+Expr :      Expr tADD DivMul { $$ = $1 + $3; }
 		| Expr tSUB DivMul { $$ = $1 - $3; }
 		| DivMul { $$ = $1; } ;
 DivMul :	  DivMul tMUL Term { $$ = $1 * $3; }
@@ -101,9 +161,18 @@ Term :		  tOP Expr tCP { $$ = $2; }
 
 %%
 
-void yyerror(char *s) { fprintf(stderr, "%s\n", s); }
+void yyerror(char *s) { fprintf(stderr, "%s\n", s);}
+
 int main(void) {
-  printf("Compiler\n"); // yydebug=1;
-  yyparse();
-  return 0;
+
+      for (int i=0;i<NB_VARIABLES;i++) variables[i] = NULL;
+      f_asm = fopen("f_asm", "w");
+      f_opcode = fopen("f_opcode", "w");
+
+      printf("Compiler\n"); // yydebug=1;
+      yyparse();
+
+      fclose(f_asm);
+      fclose(f_opcode);
+      return 0;
 }
