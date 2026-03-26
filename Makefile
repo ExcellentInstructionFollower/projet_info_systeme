@@ -1,4 +1,4 @@
-calc: 
+compile: 
 	bison -d -y compiler.y
 	flex compiler.l
 	gcc -c lex.yy.c -o compiler.lex.o

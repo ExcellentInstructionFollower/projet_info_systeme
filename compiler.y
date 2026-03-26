@@ -1,14 +1,22 @@
 %{
+#define NB_VARIABLES 256
+#define START_VAR_ADDR 0x1000000
+
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+
 void yyerror(char *s);
 
 const int STACK_BASE = 0xFFFF;
 int stack_pointer = STACK_BASE; 
+int last_addr = START_VAR_ADDR;
 
-
-
-const int NB_VARIABLES = 256;
+struct node {
+      char * label;
+      int addr;
+      struct node * next;
+};
 
 int var_hash(char * var_name) {
   int res = 0;
@@ -20,9 +28,29 @@ int var_hash(char * var_name) {
   return res % NB_VARIABLES;
 }
 
+struct node * variables[NB_VARIABLES];
 
+int insert(char * var_name) {
+      int hash = var_hash(var_name);
+      struct node * new_start = malloc(sizeof(struct node));
+      new_start->label = strdup(var_name);
+      new_start->addr = last_addr++;
+      new_start->next = variables[hash];
+      variables[hash] = new_start;
+      return last_addr-1;
+}
 
-int variables[NB_VARIABLES];
+int get(char * var_name) {
+      int hash = var_hash(var_name);
+      struct node * cur_node = variables[hash];
+      while (cur_node != NULL) {
+            if (strcmp(var_name, cur_node->label) == 0) {
+                  return cur_node->addr;
+            }
+      }
+      return -1;
+}
+
 %}
 
 %union {int nb ; char * var;}
@@ -37,23 +65,26 @@ int variables[NB_VARIABLES];
 Main : tMAIN tOP tCP tOCB Body  
 
 Body : Instruction Body 
-      |tCCB;
+      |tCCB {return 0;};
 
 Instruction : Declaration tCOL
       |Attribution tCOL
       |Call tCOL ;
 
-Declaration : tCON ConstChain  {printf("const %s = %d\n", $2, $4);}
-      | tINT IntChain {printf("int %s = %d\n", $2, $4);};
+Declaration : tCON ConstChain  
+      | tINT IntChain;
 
-ConstChain : tVAR tEQUAL Expr ConstChain
+ConstChain : tVAR tEQUAL Expr ConstChain {printf("const %s = %d\n", $1, $3);
+                                          insert($1);}
       | ;
 
-IntChain : tVAR IntChain
-      | tVAR tEQUAL Expr IntChain
+IntChain : tVAR IntChain {printf("int %s\n", $1); printf("insert = %d\n", insert($1));}
+      | tVAR tEQUAL Expr IntChain {printf("int %s = %d\n", $1, $3);
+                                    insert($1);}
       | ;
 
-Attribution : tVAR tEQUAL Expr {printf("%s = %d\n", $1, $3);};
+Attribution : tVAR tEQUAL Expr {printf("%s = %d\n", $1, $3);
+                              printf("get(%s) = %d\n", $1, get($1));};
 
 Call : tPRINT tOP tVAR tCP tCOL {printf("%s\n", $3);};
 
