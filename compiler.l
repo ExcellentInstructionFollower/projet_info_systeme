@@ -12,6 +12,8 @@
 [, \t]+	{/*return tSEP;*/}
 "int" {return tINT;}
 "const" {return tCON;}
+"if" {return tIF;}
+"while" {return tWHL;}   
 "main" {return tMAIN;}
 "printf" {return tPRINT;}
 ([0-9]+)e([0-9]+) {
@@ -37,6 +39,9 @@
 "+"	{ return tADD; }
 "*"	{ return tMUL; }
 "/"	{ return tDIV; }
+"<" { return tINF; } 
+">" { return tSUP; } 
+"==" {return tEQTO;} 
 "("	{ return tOP; }
 ")"	{ return tCP; }
 "{"	{ return tOCB; }

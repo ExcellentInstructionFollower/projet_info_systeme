@@ -4,3 +4,6 @@ Authors :
 
 
 Next step: stack, calculs intermédiaires...
+The interpreter doesn't do jumps yet, I don't know how it can
+The makefile now has a "interprete" rule for the interpreter
+For easier tests write the code in a file called "f_c_code" then run ./compiler, and then ./interpreter if desired

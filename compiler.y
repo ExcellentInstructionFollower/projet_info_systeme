@@ -3,6 +3,8 @@
 #define START_VAR_ADDR 0x1
 #define WRITE_SIZE 32
 #define STACK_BASE 0xFFF
+#define MAX_CHAR_PER_LINE 25 
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,6 +14,7 @@ void yyerror(char *s);
 
 int stack_pointer = STACK_BASE; 
 int last_addr = START_VAR_ADDR;
+int cur_instr_number = 0;
 
 FILE * f_asm;
 FILE * f_opcode;
@@ -112,12 +115,75 @@ void asm_write(int op, int result, int op1, int op2) {
       }
       fprintf(f_asm, "%s", buffer_asm);
       fprintf(f_opcode, "%s", buffer_op);   
+      cur_instr_number++;
 }
+
+
+enum SCOPE_TYPE{GENERIC, SCOPE_IF, SCOPE_WHILE};
+
+struct scope_node {
+      long start_pos_asm; //the starting position of the scope in the file f_asm
+                  //(AFTER calculatin any condition that may be present)
+      long start_pos_opcode;
+      int start_instruction; //the instruction number of the start of the scope 
+                  //(BEFORE checking conditions)
+      int type; //the scope's type, see above the SCOPE_TYPE enum
+      struct scope_node * contained_in;
+};
+
+enum SCOPE_TYPE next_scope_type = GENERIC;
+int next_scope_start_instr = 0;
+struct scope_node * scope_stack = NULL;
+
+void begin_new_scope(enum SCOPE_TYPE type) {
+      struct scope_node * new_scope = malloc(sizeof(struct scope_node));
+      new_scope->start_pos_asm = ftell(f_asm);
+      new_scope->start_pos_opcode = ftell(f_opcode);
+      new_scope->start_instruction = next_scope_start_instr;
+      new_scope->type = type;
+      new_scope->contained_in = scope_stack;
+
+      if (type == SCOPE_IF || type == SCOPE_WHILE ) {//padding for the jump that will be added later
+            for(int i=0;i<MAX_CHAR_PER_LINE;i++){ 
+                  fprintf(f_asm, " ");
+                  fprintf(f_opcode, " ");   
+            } 
+            fprintf(f_asm, "\n");
+            fprintf(f_opcode, "\n");  
+            
+            cur_instr_number++;
+      }  
+
+      scope_stack = new_scope;
+} 
+
+void end_scope() {
+
+      struct scope_node * cur_scope = scope_stack;
+
+      if (cur_scope->type == SCOPE_WHILE) {
+            asm_write(7, cur_scope->start_instruction, 0, 0);
+      } 
+
+      if (cur_scope->type == SCOPE_IF || cur_scope->type == SCOPE_WHILE ) {//padding for the jump that will be added later
+            long cur_pos_asm = ftell(f_asm);
+            long cur_pos_opcode = ftell(f_opcode);
+            fseek(f_asm, cur_scope->start_pos_asm, SEEK_SET);
+            fseek(f_opcode, cur_scope->start_pos_opcode, SEEK_SET);
+            asm_write(8, ++stack_pointer, cur_instr_number, 0);
+            cur_instr_number--;
+            fseek(f_asm, cur_pos_asm, SEEK_SET);
+            fseek(f_opcode, cur_pos_opcode, SEEK_SET);
+      }  
+
+      scope_stack = cur_scope->contained_in;
+      free(cur_scope);
+} 
 
 %}
 
 %union {int nb ; char * var;}
-%token tCON tINT tMAIN tPRINT tCOL tEQUAL tOP tCP tOCB tCCB tSUB tADD tDIV tMUL tERR
+%token tCON tINT tIF tWHL tMAIN tPRINT tCOL tEQUAL tOP tCP tOCB tCCB tSUB tADD tDIV tMUL tINF tSUP tEQTO tERR
 %token <nb> tNB
 %token <var> tVAR
 %start Main
@@ -125,10 +191,22 @@ void asm_write(int op, int result, int op1, int op2) {
 
 %%
 
-Main : tMAIN tOP tCP tOCB Body  
+Main : tMAIN tOP tCP Scope {return 0;} ;
+
+Scope : ScopeStart Body tCCB {end_scope();} ; 
+
+ScopeStart : tOCB {begin_new_scope(next_scope_type);} ;  
 
 Body : Instruction Body 
-      |tCCB {return 0;};
+      | IfStart tOP Condition tCP Scope Body
+      | WhileStart tOP Condition tCP Scope Body
+      | ;
+
+IfStart : tIF {next_scope_type = SCOPE_IF;
+                  next_scope_start_instr = cur_instr_number;} ;
+
+WhileStart :  tWHL {next_scope_type = SCOPE_WHILE;
+                        next_scope_start_instr = cur_instr_number;} ;
 
 Instruction : Declaration tCOL
       |Attribution tCOL
@@ -148,6 +226,12 @@ Attribution : tVAR tEQUAL Expr {asm_write(5, get($1), ++stack_pointer, 0);};
 
 Call : tPRINT tOP tVAR tCP {asm_write(12, get($3), 0, 0);};
 
+Condition : Expr tINF Expr { stack_pointer++ ; 
+                                    asm_write(9, stack_pointer+1, stack_pointer+1, stack_pointer); }
+            | Expr tSUP Expr { stack_pointer++ ; 
+                                    asm_write(10, stack_pointer+1, stack_pointer+1, stack_pointer); } 
+            | Expr tEQTO Expr { stack_pointer++ ; 
+                                    asm_write(10, stack_pointer+1, stack_pointer+1, stack_pointer); } ;
 
 Expr :      Expr tADD DivMul { stack_pointer++ ; 
                                     asm_write(1, stack_pointer+1, stack_pointer+1, stack_pointer); }
@@ -172,6 +256,9 @@ int main(void) {
       for (int i=0;i<NB_VARIABLES;i++) variables[i] = NULL;
       f_asm = fopen("f_asm", "w");
       f_opcode = fopen("f_opcode", "w");
+
+      FILE * f_code = fopen("f_c_code", "r");
+      if (f_code != NULL) yyrestart(f_code);
 
       printf("Compiler\n"); // yydebug=1;
       yyparse();

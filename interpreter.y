@@ -21,7 +21,7 @@ int addresses[NB_ADDRESS];
 Code: Instruction Code
       | {return 0;};
 
-Instruction : Action tEOL ;
+Instruction : Action tEOL | tEOL ;
 
 Action : 
     tADD tVAL tVAL tVAL { addresses[$2] = addresses[$3] + addresses[$4]; } |   
