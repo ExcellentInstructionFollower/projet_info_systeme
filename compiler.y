@@ -2,6 +2,7 @@
 #define NB_VARIABLES 256
 #define START_VAR_ADDR 0x1000000
 #define WRITE_SIZE 32
+#define STACK_BASE 0xFFFF 
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,7 +10,6 @@
 
 void yyerror(char *s);
 
-const int STACK_BASE = 0xFFFF;
 int stack_pointer = STACK_BASE; 
 int last_addr = START_VAR_ADDR;
 
@@ -137,27 +137,31 @@ Instruction : Declaration tCOL
 Declaration : tCON ConstChain 
       | tINT IntChain;
 
-ConstChain : tVAR tEQUAL Expr ConstChain {asm_write(6, insert($1), $3, 0);}
+ConstChain : tVAR tEQUAL Expr ConstChain {asm_write(5, insert($1), ++stack_pointer, 0);}
       | ;
 
 IntChain : tVAR IntChain {insert($1);}
-      | tVAR tEQUAL Expr IntChain {asm_write(6, insert($1), $3, 0);}
+      | tVAR tEQUAL Expr IntChain {asm_write(5, insert($1), ++stack_pointer, 0);}
       | ;
 
-Attribution : tVAR tEQUAL Expr {asm_write(6, get($1), $3, 0);};
+Attribution : tVAR tEQUAL Expr {asm_write(5, get($1), ++stack_pointer, 0);};
 
 Call : tPRINT tOP tVAR tCP {asm_write(12, get($3), 0, 0);};
 
 
-Expr :      Expr tADD DivMul { $$ = $1 + $3; }
-		| Expr tSUB DivMul { $$ = $1 - $3; }
-		| DivMul { $$ = $1; } ;
-DivMul :	  DivMul tMUL Term { $$ = $1 * $3; }
-		| DivMul tDIV Term { $$ = $1 / $3; }
-		| Term { $$ = $1; } ;
-Term :		  tOP Expr tCP { $$ = $2; }
-		| tVAR { $$ = 4; }
-		| tNB { $$ = $1; } ;
+Expr :      Expr tADD DivMul { stack_pointer++ ; 
+                                    asm_write(1, stack_pointer+1, stack_pointer+1, stack_pointer); }
+		| Expr tSUB DivMul { stack_pointer++ ; 
+                                    asm_write(3, stack_pointer+1, stack_pointer+1, stack_pointer); }
+		| DivMul { } ;
+DivMul :	  DivMul tMUL Term { stack_pointer++ ; 
+                                    asm_write(2, stack_pointer+1, stack_pointer+1, stack_pointer); }
+		| DivMul tDIV Term { stack_pointer++ ; 
+                                    asm_write(4, stack_pointer+1, stack_pointer+1, stack_pointer); }
+		| Term { } ;
+Term :		  tOP Expr tCP { }
+		| tVAR { asm_write(5, stack_pointer--, get($1), 0); }
+		| tNB { asm_write(6, stack_pointer--, $1, 0); } ;
 
 %%
 
