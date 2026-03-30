@@ -1,8 +1,8 @@
 %{
 #define NB_VARIABLES 256
-#define START_VAR_ADDR 0x1000000
+#define START_VAR_ADDR 0x1
 #define WRITE_SIZE 32
-#define STACK_BASE 0xFFFF 
+#define STACK_BASE 0xFFF
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -175,6 +175,16 @@ int main(void) {
 
       printf("Compiler\n"); // yydebug=1;
       yyparse();
+
+      for (int j=0;j<NB_VARIABLES;j++) { 
+            struct node * next_node = variables[j];
+            struct node * node_to_free;
+            while (next_node != NULL) {
+                  node_to_free = next_node;
+                  next_node = next_node->next;
+                  free(node_to_free);
+            } 
+      } 
 
       fclose(f_asm);
       fclose(f_opcode);
