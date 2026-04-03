@@ -134,7 +134,7 @@ enum SCOPE_TYPE{GENERIC, SCOPE_IF, SCOPE_WHILE};
 
 struct scope_node {
       long start_pos_asm; //the starting position of the scope in the file f_asm
-                  //(AFTER calculatin any condition that may be present)
+                  //(AFTER calculating any condition that may be present)
       long start_pos_opcode;
       int start_instruction; //the instruction number of the start of the scope 
                   //(BEFORE checking conditions)
@@ -154,7 +154,7 @@ void begin_new_scope(enum SCOPE_TYPE type) {
       new_scope->type = type;
       new_scope->contained_in = scope_stack;
 
-      asm_write(0, 0, 0, 0);
+      asm_write(0, 0, 0, 0); //padding for the jump that will be added later
 
       scope_stack = new_scope;
 } 
@@ -167,7 +167,7 @@ void end_scope() {
             asm_write(7, cur_scope->start_instruction, 0, 0);
       } 
 
-      if (cur_scope->type == SCOPE_IF || cur_scope->type == SCOPE_WHILE ) {//padding for the jump that will be added later
+      if (cur_scope->type == SCOPE_IF || cur_scope->type == SCOPE_WHILE ) {
             long cur_pos_asm = ftell(f_asm);
             long cur_pos_opcode = ftell(f_opcode);
             fseek(f_asm, cur_scope->start_pos_asm, SEEK_SET);
@@ -188,7 +188,7 @@ void end_scope() {
 %token <nb> tNB
 %token <var> tVAR
 %start Main
-%type <nb> Expr DivMul Term 
+%type <nb> Expr  
 %left tADD tSUB
 %left tDIV tMUL
 
@@ -236,17 +236,15 @@ Condition : Expr tINF Expr { stack_pointer++ ;
             | Expr tEQTO Expr { stack_pointer++ ; 
                                     asm_write(11, stack_pointer+1, stack_pointer+1, stack_pointer); } ;
 
-Expr :      Expr tADD DivMul { stack_pointer++ ; 
+Expr :      Expr tADD Expr { stack_pointer++ ; 
                                     asm_write(1, stack_pointer+1, stack_pointer+1, stack_pointer); }
-		| Expr tSUB DivMul { stack_pointer++ ; 
-                                    asm_write(3, stack_pointer+1, stack_pointer+1, stack_pointer); }
-		| DivMul { } ;
-DivMul :	  DivMul tMUL Term { stack_pointer++ ; 
+            | Expr tMUL Expr { stack_pointer++ ; 
                                     asm_write(2, stack_pointer+1, stack_pointer+1, stack_pointer); }
-		| DivMul tDIV Term { stack_pointer++ ; 
+		| Expr tSUB Expr { stack_pointer++ ; 
+                                    asm_write(3, stack_pointer+1, stack_pointer+1, stack_pointer); }
+		| Expr tDIV Expr { stack_pointer++ ; 
                                     asm_write(4, stack_pointer+1, stack_pointer+1, stack_pointer); }
-		| Term { } ;
-Term :		  tOP Expr tCP { }
+		| tOP Expr tCP { }
 		| tVAR { asm_write(5, stack_pointer--, get($1), 0); }
 		| tNB { asm_write(6, stack_pointer--, $1, 0); } ;
 
