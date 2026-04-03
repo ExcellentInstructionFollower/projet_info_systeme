@@ -1,5 +1,6 @@
 %{
 #define NB_ADDRESS 0x1000
+#define WRITE_SIZE 32
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -8,6 +9,12 @@
 void yyerror(char *s);
 
 int addresses[NB_ADDRESS]; 
+
+void jump(int line) {
+    FILE * f_asm = fopen("f_asm", "r");
+    fseek(f_asm, line*WRITE_SIZE-1, SEEK_SET); 
+    yyrestart(f_asm);
+}
 
 %}
 
@@ -30,12 +37,12 @@ Action :
     tDIV tVAL tVAL tVAL { addresses[$2] = addresses[$3] / addresses[$4]; } |   
     tCOP tVAL tVAL { addresses[$2] = addresses[$3] ; } |   
     tAFC tVAL tVAL { addresses[$2] = $3 ; } |   
-    tJMP tVAL { addresses[$2] = 0 ; } |   
-    tJMF tVAL tVAL { if (addresses[$2]) addresses[$2] = 0 ; } |  
+    tJMP tVAL { jump($2); } |   
+    tJMF tVAL tVAL { if (!addresses[$2]) {jump($3);}} |  
     tINF tVAL tVAL tVAL { addresses[$2] = addresses[$3] < addresses[$4] ; } |   
     tSUP tVAL tVAL tVAL { addresses[$2] = addresses[$3] > addresses[$4] ; } |   
     tEQU tVAL tVAL tVAL { addresses[$2] = addresses[$3] == addresses[$4] ; } |   
-    tPRI tVAL { printf("%d\n", addresses[$2]) ; } |   
+    tPRI tVAL { printf("%d\n", addresses[$2]) ; } ;  
 
 %%
 

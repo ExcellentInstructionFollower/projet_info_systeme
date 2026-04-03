@@ -3,7 +3,6 @@
 #define START_VAR_ADDR 0x1
 #define WRITE_SIZE 32
 #define STACK_BASE 0xFFF
-#define MAX_CHAR_PER_LINE 25 
 
 
 #include <stdlib.h>
@@ -54,6 +53,7 @@ int get(char * var_name) {
             if (strcmp(var_name, cur_node->label) == 0) {
                   return cur_node->addr;
             }
+            cur_node = cur_node->next;
       }
       return -1;
 }
@@ -61,60 +61,71 @@ int get(char * var_name) {
 void asm_write(int op, int result, int op1, int op2) {
       char buffer_asm[WRITE_SIZE];
       char buffer_op[WRITE_SIZE];
+      int end_line_asm = 0;
+      int end_line_op = 0;
 
       switch (op) {
             case 1:  //ADD
-                  sprintf(buffer_asm, "ADD %d %d %d\n", result, op1, op2);
-                  sprintf(buffer_op, "1 %d %d %d\n", result, op1, op2);
+                  end_line_asm = sprintf(buffer_asm, "ADD %d %d %d", result, op1, op2);
+                  end_line_op = sprintf(buffer_op, "1 %d %d %d", result, op1, op2);
                   break;
             case 2:  //MUL
-                  sprintf(buffer_asm, "MUL %d %d %d\n", result, op1, op2);
-                  sprintf(buffer_op, "2 %d %d %d\n", result, op1, op2);
+                  end_line_asm = sprintf(buffer_asm, "MUL %d %d %d", result, op1, op2);
+                  end_line_op = sprintf(buffer_op, "2 %d %d %d", result, op1, op2);
                   break;
             case 3:  //SUB
-                  sprintf(buffer_asm, "SUB %d %d %d\n", result, op1, op2);
-                  sprintf(buffer_op, "3 %d %d %d\n", result, op1, op2);
+                  end_line_asm = sprintf(buffer_asm, "SUB %d %d %d", result, op1, op2);
+                  end_line_op = sprintf(buffer_op, "3 %d %d %d", result, op1, op2);
                   break;
             case 4:  //DIV
-                  sprintf(buffer_asm, "DIV %d %d %d\n", result, op1, op2);
-                  sprintf(buffer_op, "4 %d %d %d\n", result, op1, op2);
+                  end_line_asm = sprintf(buffer_asm, "DIV %d %d %d", result, op1, op2);
+                  end_line_op = sprintf(buffer_op, "4 %d %d %d", result, op1, op2);
                   break;
             case 5:  //COP
-                  sprintf(buffer_asm, "COP %d %d\n", result, op1);
-                  sprintf(buffer_op, "5 %d %d\n", result, op1);
+                  end_line_asm = sprintf(buffer_asm, "COP %d %d", result, op1);
+                  end_line_op = sprintf(buffer_op, "5 %d %d", result, op1);
                   break;
             case 6:  //AFC
-                  sprintf(buffer_asm, "AFC %d %d\n", result, op1);
-                  sprintf(buffer_op, "6 %d %d\n", result, op1);
+                  end_line_asm = sprintf(buffer_asm, "AFC %d %d", result, op1);
+                  end_line_op = sprintf(buffer_op, "6 %d %d", result, op1);
                   break;
             case 7:  //JMP
-                  sprintf(buffer_asm, "JMP %d\n", result);
-                  sprintf(buffer_op, "7 %d\n", result);
+                  end_line_asm = sprintf(buffer_asm, "JMP %d", result);
+                  end_line_op = sprintf(buffer_op, "7 %d", result);
                   break;
             case 8:  //JMF
-                  sprintf(buffer_asm, "JMF %d %d\n", result, op1);
-                  sprintf(buffer_op, "8 %d %d\n", result, op1);
+                  end_line_asm = sprintf(buffer_asm, "JMF %d %d", result, op1);
+                  end_line_op = sprintf(buffer_op, "8 %d %d", result, op1);
                   break;
             case 9:  //INF
-                  sprintf(buffer_asm, "INF %d %d %d\n", result, op1, op2);
-                  sprintf(buffer_op, "9 %d %d %d\n", result, op1, op2);
+                  end_line_asm = sprintf(buffer_asm, "INF %d %d %d", result, op1, op2);
+                  end_line_op = sprintf(buffer_op, "9 %d %d %d", result, op1, op2);
                   break;
             case 10: //SUP
-                  sprintf(buffer_asm, "SUP %d %d %d\n", result, op1, op2);
-                  sprintf(buffer_op, "10 %d %d %d\n", result, op1, op2);
+                  end_line_asm = sprintf(buffer_asm, "SUP %d %d %d", result, op1, op2);
+                  end_line_op = sprintf(buffer_op, "10 %d %d %d", result, op1, op2);
                   break;
             case 11: //EQU
-                  sprintf(buffer_asm, "EQU %d %d %d\n", result, op1, op2);
-                  sprintf(buffer_op, "11 %d %d %d\n", result, op1, op2);
+                  end_line_asm = sprintf(buffer_asm, "EQU %d %d %d", result, op1, op2);
+                  end_line_op = sprintf(buffer_op, "11 %d %d %d", result, op1, op2);
                   break;
             case 12: //PRI
-                  sprintf(buffer_asm, "PRI %d\n", result);
-                  sprintf(buffer_op, "12 %d\n", result);
+                  end_line_asm = sprintf(buffer_asm, "PRI %d", result);
+                  end_line_op = sprintf(buffer_op, "12 %d", result);
                   break;
 
       }
-      fprintf(f_asm, "%s", buffer_asm);
-      fprintf(f_opcode, "%s", buffer_op);   
+
+      for(int i=end_line_asm ; i<WRITE_SIZE ; i++) {
+            buffer_asm[i] = ' ';
+      }
+      for(int i=end_line_op ; i<WRITE_SIZE ; i++) {
+            buffer_op[i] = ' ' ;
+      }
+      buffer_asm[WRITE_SIZE - 1] = '\0';
+      buffer_op[WRITE_SIZE - 1] = '\0';
+      fprintf(f_asm, "%s\n", buffer_asm);
+      fprintf(f_opcode, "%s\n", buffer_op);   
       cur_instr_number++;
 }
 
@@ -143,16 +154,7 @@ void begin_new_scope(enum SCOPE_TYPE type) {
       new_scope->type = type;
       new_scope->contained_in = scope_stack;
 
-      if (type == SCOPE_IF || type == SCOPE_WHILE ) {//padding for the jump that will be added later
-            for(int i=0;i<MAX_CHAR_PER_LINE;i++){ 
-                  fprintf(f_asm, " ");
-                  fprintf(f_opcode, " ");   
-            } 
-            fprintf(f_asm, "\n");
-            fprintf(f_opcode, "\n");  
-            
-            cur_instr_number++;
-      }  
+      asm_write(0, 0, 0, 0);
 
       scope_stack = new_scope;
 } 
@@ -171,7 +173,6 @@ void end_scope() {
             fseek(f_asm, cur_scope->start_pos_asm, SEEK_SET);
             fseek(f_opcode, cur_scope->start_pos_opcode, SEEK_SET);
             asm_write(8, ++stack_pointer, cur_instr_number, 0);
-            cur_instr_number--;
             fseek(f_asm, cur_pos_asm, SEEK_SET);
             fseek(f_opcode, cur_pos_opcode, SEEK_SET);
       }  
@@ -188,6 +189,8 @@ void end_scope() {
 %token <var> tVAR
 %start Main
 %type <nb> Expr DivMul Term 
+%left tADD tSUB
+%left tDIV tMUL
 
 %%
 
@@ -231,7 +234,7 @@ Condition : Expr tINF Expr { stack_pointer++ ;
             | Expr tSUP Expr { stack_pointer++ ; 
                                     asm_write(10, stack_pointer+1, stack_pointer+1, stack_pointer); } 
             | Expr tEQTO Expr { stack_pointer++ ; 
-                                    asm_write(10, stack_pointer+1, stack_pointer+1, stack_pointer); } ;
+                                    asm_write(11, stack_pointer+1, stack_pointer+1, stack_pointer); } ;
 
 Expr :      Expr tADD DivMul { stack_pointer++ ; 
                                     asm_write(1, stack_pointer+1, stack_pointer+1, stack_pointer); }
