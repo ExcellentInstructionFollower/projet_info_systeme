@@ -18,10 +18,13 @@ int cur_instr_number = 0;
 FILE * f_asm;
 FILE * f_opcode;
 
+enum VAR_TYPE{POINTER, CONST, INT};
+
 struct node {
       char * label;
       int addr;
       struct node * next;
+      enum VAR_TYPE var_type;
 };
 
 int var_hash(char * var_name) {
@@ -36,12 +39,13 @@ int var_hash(char * var_name) {
 
 struct node * variables[NB_VARIABLES];
 
-int insert(char * var_name) {
+int insert(char * var_name, enum VAR_TYPE type) {
       int hash = var_hash(var_name);
       struct node * new_start = malloc(sizeof(struct node));
       new_start->label = strdup(var_name);
       new_start->addr = last_addr++;
       new_start->next = variables[hash];
+      new_start->var_type = type;
       variables[hash] = new_start;
       return last_addr-1;
 }
@@ -135,7 +139,7 @@ enum SCOPE_TYPE{GENERIC, SCOPE_IF, SCOPE_WHILE};
 struct scope_node {
       long start_pos_asm; //the starting position of the scope in the file f_asm
                   //(AFTER calculating any condition that may be present)
-      long start_pos_opcode;
+      long start_pos_opcode;enum
       int start_instruction; //the instruction number of the start of the scope 
                   //(BEFORE checking conditions)
       int type; //the scope's type, see above the SCOPE_TYPE enum
@@ -172,7 +176,7 @@ void end_scope() {
             long cur_pos_opcode = ftell(f_opcode);
             fseek(f_asm, cur_scope->start_pos_asm, SEEK_SET);
             fseek(f_opcode, cur_scope->start_pos_opcode, SEEK_SET);
-            asm_write(8, ++stack_pointer, cur_instr_number, 0);
+            asm_write(8, ++stack_pointeenumr, cur_instr_number, 0);
             fseek(f_asm, cur_pos_asm, SEEK_SET);
             fseek(f_opcode, cur_pos_opcode, SEEK_SET);
       }  
@@ -184,7 +188,7 @@ void end_scope() {
 %}
 
 %union {int nb ; char * var;}
-%token tCON tINT tIF tWHL tMAIN tPRINT tCOL tEQUAL tOP tCP tOCB tCCB tSUB tADD tDIV tMUL tINF tSUP tEQTO tERR
+%token tCON tINT tVOID tIF tWHL tMAIN tPRINT tCOL tEQUAL tAMP tOP tCP tOCB tCCB tOCOM tCCOM tNULL tSUB tADD tDIV tMUL tINF tSUP tEQTO tERR
 %token <nb> tNB
 %token <var> tVAR
 %start Main
@@ -217,15 +221,24 @@ Instruction : Declaration tCOL
 
 Declaration : tCON ConstChain 
       | tINT IntChain;
+      | tINT tMUL PointChain;
 
-ConstChain : tVAR tEQUAL Expr ConstChain {asm_write(5, insert($1), ++stack_pointer, 0);}
+ConstChain : tVAR tEQUAL Expr ConstChain {asm_write(5, insert($1, CONST), ++stack_pointer, 0);}
       | ;
 
-IntChain : tVAR IntChain {insert($1);}
-      | tVAR tEQUAL Expr IntChain {asm_write(5, insert($1), ++stack_pointer, 0);}
+IntChain : tVAR IntChain {insert($1, INT);}
+      | tVAR tEQUAL Expr IntChain {asm_write(5, insert($1, INT), ++stack_pointer, 0);}
+      | ;
+
+PointChain : tVAR PointChain {insert($1, POINTER);}
+      | tVAR tEQUAL tNULL PointChain {asm_write(6, insert($1, POINTER), 0, 0);}
+      | tVAR tEQUAL tMUL tVAR PointChain {asm_write(5, insert($1, POINTER), get($4), 0);}
       | ;
 
 Attribution : tVAR tEQUAL Expr {asm_write(5, get($1), ++stack_pointer, 0);};
+            | tVAR tEQUAL tMUL tVAR {asm_write(5, get($1), get($4), 0);};//TODO
+            | tVAR tEQUAL tNULL PointChain {asm_write(6, get($1), 0, 0);}
+            | tMUL tVAR tEQUAL Expr {asm_write(5, get($1), ++stack_pointer, 0);};//TODO
 
 Call : tPRINT tOP tVAR tCP {asm_write(12, get($3), 0, 0);};
 
