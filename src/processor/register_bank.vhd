@@ -1,29 +1,8 @@
 library IEEE;
-use IEEE.STD_LOGIC_UNSIGN.ALL;
-use IEEE.NUMERIC_STD.ALL;
-
--- ALU (Arithmetic Logic Unit)
-entity alu is
-    port(
-        a, b : in  std_logic_vector(3 downto 0);
-        op   : in  std_logic_vector(1 downto 0);
-        y    : out std_logic_vector(3 downto 0);
-        zf   : out std_logic
-    );
-end alu;
-
-architecture rtl of alu is
-begin
-    y  <= a + b when op = "00" else
-          a - b when op = "01" else
-          a and b when op = "10" else
-          a or b;
-
-    zf <= '1' when y = "0000" else '0';
-end rtl;
+use IEEE.STD_LOGIC_1164.ALL;
 
 
--- 4 * 8‑bits register bank
+-- 16 * 8‑bits register bank
 entity register_bank is
     port(
         clk  : in  std_logic;
