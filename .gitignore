@@ -1,6 +1,2 @@
-*.o
-*.c
-*.h
-compiler
-interpreter
+target/*
 f_*

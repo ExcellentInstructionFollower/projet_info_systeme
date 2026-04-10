@@ -139,7 +139,7 @@ enum SCOPE_TYPE{GENERIC, SCOPE_IF, SCOPE_WHILE};
 struct scope_node {
       long start_pos_asm; //the starting position of the scope in the file f_asm
                   //(AFTER calculating any condition that may be present)
-      long start_pos_opcode;enum
+      long start_pos_opcode;
       int start_instruction; //the instruction number of the start of the scope 
                   //(BEFORE checking conditions)
       int type; //the scope's type, see above the SCOPE_TYPE enum
@@ -176,7 +176,7 @@ void end_scope() {
             long cur_pos_opcode = ftell(f_opcode);
             fseek(f_asm, cur_scope->start_pos_asm, SEEK_SET);
             fseek(f_opcode, cur_scope->start_pos_opcode, SEEK_SET);
-            asm_write(8, ++stack_pointeenumr, cur_instr_number, 0);
+            asm_write(8, ++stack_pointer, cur_instr_number, 0);
             fseek(f_asm, cur_pos_asm, SEEK_SET);
             fseek(f_opcode, cur_pos_opcode, SEEK_SET);
       }  
@@ -238,7 +238,7 @@ PointChain : tVAR PointChain {insert($1, POINTER);}
 Attribution : tVAR tEQUAL Expr {asm_write(5, get($1), ++stack_pointer, 0);};
             | tVAR tEQUAL tMUL tVAR {asm_write(5, get($1), get($4), 0);};//TODO
             | tVAR tEQUAL tNULL PointChain {asm_write(6, get($1), 0, 0);}
-            | tMUL tVAR tEQUAL Expr {asm_write(5, get($1), ++stack_pointer, 0);};//TODO
+            | tMUL tVAR tEQUAL Expr {asm_write(5, get($2), ++stack_pointer, 0);};//TODO
 
 Call : tPRINT tOP tVAR tCP {asm_write(12, get($3), 0, 0);};
 

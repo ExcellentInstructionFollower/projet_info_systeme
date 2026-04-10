@@ -1,16 +1,16 @@
 compile: 
-	bison -d -y compiler.y
-	flex compiler.l
-	gcc -c lex.yy.c -o compiler.lex.o
-	gcc -c y.tab.c -o compiler.y.o
-	gcc -o compiler compiler.y.o compiler.lex.o
+	bison -b target/y -d -y src/compiler/compiler.y
+	flex -o target/lex.yy.c src/compiler/compiler.l
+	gcc -c target/lex.yy.c -o target/compiler.lex.o
+	gcc -c target/y.tab.c -o target/compiler.y.o
+	gcc -o target/compiler target/compiler.y.o target/compiler.lex.o
 
 interprete: 
-	bison -d -y interpreter.y
-	flex interpreter.l
-	gcc -c lex.yy.c -o interpreter.lex.o
-	gcc -c y.tab.c -o interpreter.y.o
-	gcc -o interpreter interpreter.y.o interpreter.lex.o
+	bison -b target/y -d -y src/interpreter/interpreter.y
+	flex -o target/lex.yy.c src/interpreter/interpreter.l
+	gcc -c target/lex.yy.c -o target/interpreter.lex.o
+	gcc -c target/y.tab.c -o target/interpreter.y.o
+	gcc -o target/interpreter target/interpreter.y.o target/interpreter.lex.o
 
 clean: 
-	rm -f compiler interpreter f_* *.o
+	rm -f target/* f_* 
