@@ -14,20 +14,21 @@ entity alu is
 end alu;
 
 architecture rtl of alu is
-    signal Aext, Bext, Sext : std_logic_vector(15 downto 0);
+    signal Aext, Bext : signed(15 downto 0);--std_logic_vector(15 downto 0);
+    signal Sext : std_logic_vector(15 downto 0);
 begin
-    Aext <= X"00FF" & A;
-    Bext<= X"00FF" & B;
+    Aext <= signed(X"00" & A);--X"00" & A;
+    Bext<= signed(X"00" & B);--X"00" & B;
     
-    Sext  <= Aext + Bext when Ctrl_ALU = "000" else
-          Aext - Bext when Ctrl_ALU = "001" else
-          Aext * Bext when Ctrl_ALU = "010" else
-          --TODO Aext / Bext when Ctrl_ALU = "011" else
+    Sext  <= std_logic_vector(Aext + Bext) when Ctrl_ALU = "000" else
+          std_logic_vector(Aext - Bext) when Ctrl_ALU = "001" else
+          A * B when Ctrl_ALU = "010" else
+          std_logic_vector(Aext / Bext) when Ctrl_ALU = "011" else
           X"0000";
     
        
     S <= Sext(7 downto 0);
-    Z <= '1' when Sext(7 downto 0) /= X"00" else '0';
+    Z <= '0' when Sext(7 downto 0) /= X"00" else '1';
     C <= '1' when Sext(15 downto 8) /= X"00" and Ctrl_ALU = "000" else '0';
     O <= '1' when Sext(15 downto 8) /= X"00" and Ctrl_ALU = "010" else '0';
     N <= '1' when Sext(15 downto 8) /= X"00" and Ctrl_ALU = "001" else '0';

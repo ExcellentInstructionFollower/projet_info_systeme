@@ -1,0 +1,84 @@
+----------------------------------------------------------------------------------
+-- Company: 
+-- Engineer: 
+-- 
+-- Create Date: 04/10/2026 02:13:03 PM
+-- Design Name: 
+-- Module Name: test_ALU - Behavioral
+-- Project Name: 
+-- Target Devices: 
+-- Tool Versions: 
+-- Description: 
+-- 
+-- Dependencies: 
+-- 
+-- Revision:
+-- Revision 0.01 - File Created
+-- Additional Comments:
+-- 
+----------------------------------------------------------------------------------
+
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+
+-- Uncomment the following library declaration if using
+-- arithmetic functions with Signed or Unsigned values
+--use IEEE.NUMERIC_STD.ALL;
+
+-- Uncomment the following library declaration if instantiating
+-- any Xilinx leaf cells in this code.
+--library UNISIM;
+--use UNISIM.VComponents.all;
+
+entity test_ALU is
+--  Port ( );
+end test_ALU;
+
+
+architecture Behavioral of test_ALU is
+
+    component ALU
+    Port ( A, B : in  std_logic_vector(7 downto 0);
+        Ctrl_ALU   : in  std_logic_vector(2 downto 0);
+        S    : out std_logic_vector(7 downto 0);
+        N, O, Z, C   : out std_logic);
+    end component;
+    
+    constant Clock_period : time := 20ns;
+    
+    signal CK_test : STD_LOGIC := '0';
+    signal N_test : STD_LOGIC;
+    signal O_test : STD_LOGIC;
+    signal Z_test : STD_LOGIC;
+    signal C_test : STD_LOGIC;
+    signal Ctrl_test : STD_LOGIC_VECTOR (2 downto 0) := (others => '0');
+    signal A_test : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
+    signal B_test : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
+    signal S_test : STD_LOGIC_VECTOR (7 downto 0);
+    
+begin
+
+    Label_uut : ALU PORT MAP(
+        Ctrl_ALU=>Ctrl_test,
+        A=>A_test,
+        B=>B_test,
+        N=>N_test,
+        O=>O_test,
+        Z=>Z_test,
+        C=>C_test,
+        S=>S_test
+    );
+        
+    Clock_process : process
+    begin
+    CK_test <= not(CK_test);
+    wait for Clock_period/2;
+    end process;
+    
+    Ctrl_test <= "001" after 60ns, "010" after 100ns, "011" after 180ns;
+    A_test <= X"10" after 10ns, X"FE" after 30ns, X"14" after 80ns, X"E9" after 150ns;
+    B_test <= X"24" after 20ns, X"02" after 110ns, X"C4" after 140ns, X"03" after 200ns;
+     
+
+end Behavioral;
