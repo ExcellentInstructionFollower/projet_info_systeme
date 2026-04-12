@@ -1,0 +1,7 @@
+# compile vhdl design source files
+vhdl xil_defaultlib  \
+"../../../../../src/processor/memories.vhd" \
+"../../../../vivado.srcs/sim_1/new/test_memories.vhd" \
+
+# Do not sort compile order
+nosort

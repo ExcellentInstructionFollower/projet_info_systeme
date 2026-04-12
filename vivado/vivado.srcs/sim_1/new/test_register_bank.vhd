@@ -22,7 +22,7 @@ architecture Behavioral of test_register_bank is
         );
     end component;
     
-10onstant Clock_period : time := 10 ns;
+    constant Clock_period : time := 10 ns;
     
     signal addrA_test : std_logic_vector(3 downto 0) := (others => '0');
     signal addrB_test : std_logic_vector(3 downto 0) := (others => '0');
@@ -58,7 +58,7 @@ begin
     begin
         -- keep rst to '0' to initialize to 0x00
         wait for 10 ns;
-        rst <= '1';
+        rst_test <= '1';
         wait for 10 ns;
 
         -- check QA and QB should be 0
@@ -67,7 +67,7 @@ begin
         addrW_test <= "0101";
         data_test <= X"AA";
         W_test <= '1';
-        wait until rising_edge(clk);
+        wait until rising_edge(clk_test);
         wait for 10 ns;
         W_test <= '0';
 
@@ -81,7 +81,7 @@ begin
         addrW_test <= "1010";
         data_test <= X"55";
         W_test <= '1';
-        wait until rising_edge(clk);
+        wait until rising_edge(clk_test);
         wait for 10 ns;
         W_test <= '0';
 
@@ -95,7 +95,5 @@ begin
                 
         wait for 10 ns;
         -- QA and QB should be FF
-        
     end process;
-
 end Behavioral;

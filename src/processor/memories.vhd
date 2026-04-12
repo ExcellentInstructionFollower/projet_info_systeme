@@ -21,29 +21,31 @@ architecture rtl of data_memory is
 begin
     process(clk)
     begin
-
         if rising_edge(clk) then
-
             if rst = '0' then
-                for i in 0...255
-                    memory(i) <= (others => '0');
-            else
-
-                if rw = '0' then
-                    memory(to_integer(unsigned(addr))) <= data_in;
-                end if;
-
+                memory <= (others => (others => '0'));
+            elsif rw = '0' then
+                memory(to_integer(unsigned(addr))) <= data_in;
             end if;
         end if;
-
     end process;
 
-    data_out <= memory(to_integer(unsigned(addr)));
-
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if rw = '1' then
+                data_out <= memory(to_integer(unsigned(addr)));
+            end if;
+        end if;
+    end process;
 end rtl;
 
 ------------------------------------------------------------------
 ------------------------------------------------------------------
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.NUMERIC_STD.ALL;
+
 
 entity inst_memory is
     port(
@@ -69,10 +71,8 @@ architecture rtl of inst_memory is
 begin
     process(clk)
     begin
-
         if rising_edge(clk) then
             inst_out <= memory(to_integer(unsigned(addr)));
         end if;
-        
     end process;
 end rtl;
