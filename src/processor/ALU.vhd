@@ -22,14 +22,14 @@ begin
     
     Sext  <= std_logic_vector(Aext + Bext) when Ctrl_ALU = "000" else
           std_logic_vector(Aext - Bext) when Ctrl_ALU = "001" else
-          A * B when Ctrl_ALU = "010" else
+          std_logic_vector(signed(A) * signed(B)) when Ctrl_ALU = "010" else
           std_logic_vector(Aext / Bext) when Ctrl_ALU = "011" else
           X"0000";
     
        
     S <= Sext(7 downto 0);
     Z <= '0' when Sext(7 downto 0) /= X"00" else '1';
-    C <= '1' when Sext(15 downto 8) /= X"00" and Ctrl_ALU = "000" else '0';
+    C <= '1' when (Sext > X"00FF" or Sext < X"FF00") and (Ctrl_ALU = "000" or Ctrl_ALU = "001") else '0';
     O <= '1' when Sext(15 downto 8) /= X"00" and Ctrl_ALU = "010" else '0';
     N <= '1' when Sext(15 downto 8) /= X"00" and Ctrl_ALU = "001" else '0';
 end rtl;

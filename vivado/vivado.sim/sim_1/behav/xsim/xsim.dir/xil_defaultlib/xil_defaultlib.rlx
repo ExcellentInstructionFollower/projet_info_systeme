@@ -1,8 +1,0 @@
-0.7
-2020.2
-Nov  8 2024
-22:36:55
-/home/nouiga/Documents/S8/SI/projet_info_systeme/src/processor/memories.vhd,1775989413,vhdl,,,,data_memory;inst_memory,,,,,,,,
-/home/nouiga/Documents/S8/SI/projet_info_systeme/src/processor/register_bank.vhd,1775984440,vhdl,,,,register_bank,,,,,,,,
-/home/nouiga/Documents/S8/SI/projet_info_systeme/vivado/vivado.srcs/sim_1/new/test_memories.vhd,1776016886,vhdl,,,,test_memory,,,,,,,,
-/home/nouiga/Documents/S8/SI/projet_info_systeme/vivado/vivado.srcs/sim_1/new/test_register_bank.vhd,1775985039,vhdl,,,,test_register_bank,,,,,,,,
