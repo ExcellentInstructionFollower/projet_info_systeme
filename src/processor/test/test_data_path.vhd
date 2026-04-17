@@ -1,35 +1,5 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date: 04/17/2026 10:39:02 AM
--- Design Name: 
--- Module Name: test_data_path - Behavioral
--- Project Name: 
--- Target Devices: 
--- Tool Versions: 
--- Description: 
--- 
--- Dependencies: 
--- 
--- Revision:
--- Revision 0.01 - File Created
--- Additional Comments:
--- 
-----------------------------------------------------------------------------------
-
-
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
-
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
 
 entity test_data_path is
 --  Port ( );
@@ -95,7 +65,7 @@ begin
     
     RST_test <= '1' after 35ns;
     Bin_test <= X"D7" after 11ns;
-    OPin_test <= X"02" after 55ns;
+    OPin_test <= X"02" after 55ns, X"03" after 65ns, X"04" after 75ns, X"05" after 85ns;
     SelectA_test <= '1' after 65ns;
 
 

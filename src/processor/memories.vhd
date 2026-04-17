@@ -51,28 +51,31 @@ entity inst_memory is
     port(
         clk      : in  std_logic;
         addr     : in  std_logic_vector(7 downto 0);
-        inst_out : out std_logic_vector(7 downto 0)
+        OPout, Aout, Bout, Cout  : out std_logic_vector(7 downto 0)
     );
 end inst_memory;
 
 architecture rtl of inst_memory is
-    type mem_array is array (0 to 255) of std_logic_vector(7 downto 0);
+    type mem_array is array (0 to 255) of std_logic_vector(31 downto 0);
     
-    -- hardcoded example
+    -- hardcoded example (form: OP A B C)
     signal memory : mem_array := (
-        0 => X"01",
-        1 => X"02",
-        2 => X"03",
-        3 => X"00",
-        4 => X"FF",
-        others => X"00"
+        0 => X"06050344",
+        1 => X"06024577",
+        2 => X"05060544",
+        3 => X"00000000",
+        4 => X"FFFFFFFF",
+        others => (others => '0')
     );
 
 begin
     process(clk)
     begin
         if rising_edge(clk) then
-            inst_out <= memory(to_integer(unsigned(addr)));
+            OPout <= memory(to_integer(unsigned(addr)))(31 downto 24);
+            Aout <= memory(to_integer(unsigned(addr)))(23 downto 16);
+            Bout <= memory(to_integer(unsigned(addr)))(15 downto 8);
+            Cout <= memory(to_integer(unsigned(addr)))(7 downto 0);
         end if;
     end process;
 end rtl;

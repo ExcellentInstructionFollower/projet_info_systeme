@@ -1,15 +1,6 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
---use IEEE.NUMERIC_STD.ALL;
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx leaf cells in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
 entity test_ALU is
 --  Port ( );
 end test_ALU;
@@ -20,7 +11,7 @@ architecture Behavioral of test_ALU is
     component ALU
     Port ( A, B : in  std_logic_vector(7 downto 0);
         Ctrl_ALU   : in  std_logic_vector(2 downto 0);
-        S    : out std_logic_vector(15 downto 0);
+        S    : out std_logic_vector(7 downto 0);
         N, O, Z, C   : out std_logic);
     end component;
     
@@ -34,7 +25,7 @@ architecture Behavioral of test_ALU is
     signal Ctrl_test : STD_LOGIC_VECTOR (2 downto 0) := (others => '0');
     signal A_test : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
     signal B_test : STD_LOGIC_VECTOR (7 downto 0) := (others => '0');
-    signal S_test : STD_LOGIC_VECTOR (15 downto 0);
+    signal S_test : STD_LOGIC_VECTOR (7 downto 0);
     
 begin
 

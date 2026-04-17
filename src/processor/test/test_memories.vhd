@@ -22,7 +22,7 @@ architecture Behavioral of test_memory is
         port(
             clk     : in  std_logic;
             addr    : in  std_logic_vector(7 downto 0);
-            inst_out: out std_logic_vector(7 downto 0)
+            OPout, Aout, Bout, Cout: out std_logic_vector(7 downto 0)
         );
     end component;
 
@@ -40,7 +40,7 @@ architecture Behavioral of test_memory is
 
     -- signals instruction memory (ROM)
     signal addr_rom_test   : std_logic_vector(7 downto 0) := (others => '0');
-    signal dout_rom_test   : std_logic_vector(7 downto 0);
+    signal OPout_rom_test, Aout_rom_test, Bout_rom_test, Cout_rom_test   : std_logic_vector(7 downto 0);
 
 begin
 
@@ -58,7 +58,10 @@ begin
     uut_rom: inst_memory PORT MAP(
         clk      => clk_test,
         addr     => addr_rom_test,
-        inst_out=> dout_rom_test
+        OPout=> OPout_rom_test,
+        Aout=> Aout_rom_test,
+        Bout=> Bout_rom_test,
+        Cout=> Cout_rom_test
     );
 
     Clock_process : process
