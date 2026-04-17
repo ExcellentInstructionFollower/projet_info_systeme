@@ -38,7 +38,7 @@ architecture Behavioral of test_ALU is
     
 begin
 
-    Label_uut : ALU PORT MAP(
+    uut_ALU : ALU PORT MAP(
         Ctrl_ALU=>Ctrl_test,
         A=>A_test,
         B=>B_test,
@@ -56,8 +56,8 @@ begin
     end process;
     
     Ctrl_test <= "001" after 60ns, "010" after 120ns, "011" after 180ns;
-    A_test <= X"10" after 10ns, X"FE" after 30ns, X"14" after 80ns, X"00" after 90ns, X"32" after 130ns, X"E9" after 150ns;
-    B_test <= X"24" after 20ns, X"E4" after 40ns, X"57" after 50ns, X"01" after 100ns, X"FE" after 110ns, X"02" after 120ns, X"C4" after 140ns, X"03" after 200ns, X"00" after 220ns;
+    A_test <= X"10" after 10ns, X"fe" after 30ns, X"14" after 80ns, X"00" after 90ns, X"32" after 130ns, X"E9" after 150ns;
+    B_test <= X"24" after 20ns, X"e4" after 40ns, X"57" after 50ns, X"01" after 100ns, X"FE" after 110ns, X"02" after 120ns, X"C4" after 140ns, X"03" after 200ns, X"00" after 220ns;
      
 
 end Behavioral;
