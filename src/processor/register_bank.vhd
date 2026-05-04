@@ -25,16 +25,16 @@ architecture rtl of register_bank is
     signal data_read_b : std_logic_vector(7 downto 0);
 
 begin
-process(clk)
-begin
-    if rising_edge(clk) then
-        if rst = '0' then
-            regs <= (others => (others => '0'));
-        elsif W = '1' then
-            regs(to_integer(unsigned(addrW))) <= data;
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if rst = '0' then
+                regs <= (others => (others => '0'));
+            elsif W = '1' then
+                regs(to_integer(unsigned(addrW))) <= data;
+            end if;
         end if;
-    end if;
-end process;
+    end process;
 
     data_read_a <= regs(to_integer(unsigned(addrA)));
     data_read_b <= regs(to_integer(unsigned(addrB)));

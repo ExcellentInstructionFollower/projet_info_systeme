@@ -65,28 +65,29 @@ architecture Behavioral of processor is
     end component;
     
     --signals instructions memory
-    signal instruction_pointer : std_logic_vector(7 downto 0) := (others => '0');
-    signal instruction_out : std_logic_vector(31 downto 0);
+    signal instruction_pointer : std_logic_vector(7 downto 0);
+    signal nb_nop : std_logic_vector(2 downto 0);
+    
     
     --signals LI/DI (IF/ID)
-    signal select_decode : std_logic;
+    signal select_decode, rst_ifid : std_logic;
     signal registers_to_mux : std_logic_vector(7 downto 0);
     signal Aifid_in, Bifid_in, Cifid_in, OPifid_in: std_logic_vector(7 downto 0);
     signal Aifid_out, Bifid_out, Cifid_out, OPifid_out: std_logic_vector(7 downto 0);
     
     --signals DI/EX (ID/EX)
     signal LC_execute : std_logic;
-    signal Aidex_in, Bidex_in, Cidex_in, OPidex_in: std_logic_vector(7 downto 0);
+    signal Bidex_in, Cidex_in: std_logic_vector(7 downto 0);
     signal Aidex_out, Bidex_out, Cidex_out, OPidex_out: std_logic_vector(7 downto 0);
     
     --signals EX/Mem (EX/MA)
     signal LC_memory : std_logic;
-    signal Aexma_in, Bexma_in, Cexma_in, OPexma_in: std_logic_vector(7 downto 0);
+    signal Bexma_in, Cexma_in: std_logic_vector(7 downto 0);
     signal Aexma_out, Bexma_out, Cexma_out, OPexma_out: std_logic_vector(7 downto 0);
     
     --signals Mem/RE (MA/WB)
     signal LC_writeback : std_logic;
-    signal Amawb_in, Bmawb_in, Cmawb_in, OPmawb_in: std_logic_vector(7 downto 0);
+    signal Bmawb_in, Cmawb_in: std_logic_vector(7 downto 0);
     signal Amawb_out, Bmawb_out, Cmawb_out, OPmawb_out: std_logic_vector(7 downto 0);
 
 
@@ -139,15 +140,15 @@ begin
         Bout => Bifid_out,
         Cout => Cifid_out,
         OPout => OPifid_out,
-        RST => rst
+        RST => rst_ifid
     );
     
     uut_IDEX: pipeline_buffer PORT MAP(
         CLK => clk,
-        Ain => Aidex_in,
+        Ain => Aifid_out,
         Bin => Bidex_in,
         Cin => Cidex_in,
-        OPin => OPidex_in,
+        OPin => OPifid_out,
         Aout => Aidex_out,
         Bout => Bidex_out,
         Cout => Cidex_out,
@@ -157,10 +158,10 @@ begin
     
     uut_EXMA: pipeline_buffer PORT MAP(
         CLK => clk,
-        Ain => Aexma_in,
-        Bin => Bexma_in,
+        Ain => Aidex_out,
+        Bin => Bidex_out,
         Cin => Cexma_in,
-        OPin => OPexma_in,
+        OPin => OPidex_out,
         Aout => Aexma_out,
         Bout => Bexma_out,
         Cout => Cexma_out,
@@ -170,36 +171,65 @@ begin
     
     uut_MAWB: pipeline_buffer PORT MAP(
         CLK => clk,
-        Ain => Amawb_in,
-        Bin => Bmawb_in,
+        Ain => Aexma_out,
+        Bin => Bexma_out,
         Cin => Cmawb_in,
-        OPin => OPmawb_in,
+        OPin => OPexma_out,
         Aout => Amawb_out,
         Bout => Bmawb_out,
         Cout => Cmawb_out,
         OPout => OPmawb_out,
         RST => rst
     );
+    
+    
 
     IFID_process : process(CLK) 
     begin
         if rising_edge(CLK) then
-            instruction_pointer <= instruction_pointer + X"01";
+            if (RST = '0') then
+                instruction_pointer <= X"00";
+                nb_nop <= (others => '0');
+                rst_ifid <= '0';
+            elsif (nb_nop /= "000") then
+                rst_ifid <= '0';
+                nb_nop <= nb_nop - "001";
+                instruction_pointer <= instruction_pointer;
+            elsif (OPifid_in = X"05") then
+                if ((OPifid_out = X"05" or OPifid_out = X"06") and Bifid_in = Aifid_out) then
+                    rst_ifid <= '0';
+                    nb_nop <= "100";
+                    instruction_pointer <= instruction_pointer;
+                elsif ((OPidex_out = X"05" or OPidex_out = X"06") and Bifid_in = Aidex_out) then
+                    rst_ifid <= '0';
+                    nb_nop <= "011";
+                    instruction_pointer <= instruction_pointer;
+                elsif ((OPexma_out = X"05" or OPexma_out = X"06") and Bifid_in = Aexma_out) then
+                    rst_ifid <= '0';
+                    nb_nop <= "010";
+                    instruction_pointer <= instruction_pointer;
+                elsif ((OPmawb_out = X"05" or OPmawb_out = X"06") and Bifid_in = Amawb_out) then
+                    rst_ifid <= '0';
+                    nb_nop <= "001";
+                    instruction_pointer <= instruction_pointer;
+                end if;
+            else 
+                instruction_pointer <= instruction_pointer + X"01";
+                rst_ifid <= '1';
+            end if;
         end if;
         
     end process;
     
-    IDEX_process : process(CLK) 
+    IDEX_process : process(OPifid_out) 
     begin
-        if rising_edge(CLK) then
-            if (OPifid_out = X"06" or OPifid_out = X"05") then
-                select_decode <= '1';
-            else
-                select_decode <= '0';
-            
-            end if;     
-        end if;
+        if (OPifid_out = X"05") then
+            select_decode <= '0';
+        else
+            select_decode <= '1';
         
+        end if;     
+    
     end process;
     
     EXMA_process : process(CLK) 
@@ -209,16 +239,14 @@ begin
         
     end process;
     
-    MAWB_process : process(CLK) 
+    MAWB_process : process(OPmawb_out) 
     begin
-        if rising_edge(CLK) then
-            if (OPifid_out = X"06" or OPifid_out = X"05") then
-                LC_writeback <= '1';
-            else
-                LC_writeback <= '0';
-            
-            end if;  
-        end if;
+        if (OPmawb_out = X"06" or OPmawb_out = X"05") then
+            LC_writeback <= '1';
+        else
+            LC_writeback <= '0';
+        
+        end if;  
         
     end process;
 

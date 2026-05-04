@@ -39,36 +39,53 @@ end pipeline_buffer;
 
 architecture Behavioral of pipeline_buffer is
 
-signal Abuf, Bbuf, Cbuf, OPbuf : STD_LOGIC_VECTOR (7 downto 0);
+--signal Abuf, Bbuf, Cbuf, OPbuf : STD_LOGIC_VECTOR (7 downto 0);
 
 begin
 
-    process(CLK)
+process(CLK)
     begin
         if rising_edge(CLK) then
             if RST = '0' then
-                Abuf <= (others => '0');
-                Bbuf <= (others => '0');
-                Cbuf <= (others => '0');
-                OPbuf <= (others => '0');
+                Aout <= (others => '0');
+                Bout <= (others => '0');
+                Cout <= (others => '0');
+                OPout <= (others => '0');
             else 
-                Abuf <= Ain;
-                Bbuf <= Bin;
-                Cbuf <= Cin;
-                OPbuf <= OPin;
+                Aout <= Ain;
+                Bout <= Bin;
+                Cout <= Cin;
+                OPout <= OPin;
             end if;
         end if;
     end process;
+
+--    process(CLK)
+--    begin
+--        if rising_edge(CLK) then
+--            if RST = '0' then
+--                Abuf <= (others => '0');
+--                Bbuf <= (others => '0');
+--                Cbuf <= (others => '0');
+--                OPbuf <= (others => '0');
+--            else 
+--                Abuf <= Ain;
+--                Bbuf <= Bin;
+--                Cbuf <= Cin;
+--                OPbuf <= OPin;
+--            end if;
+--        end if;
+--    end process;
     
-    process(CLK)
-    begin
-        if rising_edge(CLK) then
-            Aout <= Abuf;
-            Bout <= Bbuf;
-            Cout <= Cbuf;
-            OPout <= OPbuf;
-        end if;
-    end process;
+--    process(CLK)
+--    begin
+--        if rising_edge(CLK) then
+--            Aout <= Abuf;
+--            Bout <= Bbuf;
+--            Cout <= Cbuf;
+--            OPout <= OPbuf;
+--        end if;
+--    end process;
 
 end Behavioral;
 

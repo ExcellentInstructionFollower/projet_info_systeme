@@ -51,7 +51,7 @@ entity inst_memory is
     port(
         clk      : in  std_logic;
         addr     : in  std_logic_vector(7 downto 0);
-        OPout, Aout, Bout, Cout  : out std_logic_vector(7 downto 0)
+        Aout, Bout, Cout, OPout  : out std_logic_vector(7 downto 0)
     );
 end inst_memory;
 
