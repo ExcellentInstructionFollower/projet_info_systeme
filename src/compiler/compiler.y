@@ -1,8 +1,8 @@
 %{
-#define NB_VARIABLES 256
-#define START_VAR_ADDR 0x1
+#define NB_VARIABLES 128
+#define START_VAR_ADDR 0x0
 #define WRITE_SIZE 32
-#define STACK_BASE 0xFFF
+#define STACK_BASE 255
 
 
 #include <stdlib.h>

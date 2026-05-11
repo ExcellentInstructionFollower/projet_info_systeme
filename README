@@ -6,3 +6,4 @@ Authors :
 Next step: check variable types, memory allocation, add LOAD and STORE to ASM
 Compiler handles memory allocation
 Now to finish processor, make cross compiler and maybe implement extras
+Ajouter multiplexer qui arrête l'instruction probl"ématique avant qu'elle pose problème
