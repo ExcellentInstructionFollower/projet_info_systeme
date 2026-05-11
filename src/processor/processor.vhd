@@ -199,19 +199,22 @@ begin
                 if ((OPifid_out = X"05" or OPifid_out = X"06") and Bifid_in = Aifid_out) then
                     rst_ifid <= '0';
                     nb_nop <= "100";
-                    instruction_pointer <= instruction_pointer;
+                    instruction_pointer <= instruction_pointer - X"01";
                 elsif ((OPidex_out = X"05" or OPidex_out = X"06") and Bifid_in = Aidex_out) then
                     rst_ifid <= '0';
                     nb_nop <= "011";
-                    instruction_pointer <= instruction_pointer;
+                    instruction_pointer <= instruction_pointer - X"01";
                 elsif ((OPexma_out = X"05" or OPexma_out = X"06") and Bifid_in = Aexma_out) then
                     rst_ifid <= '0';
                     nb_nop <= "010";
-                    instruction_pointer <= instruction_pointer;
+                    instruction_pointer <= instruction_pointer - X"01";
                 elsif ((OPmawb_out = X"05" or OPmawb_out = X"06") and Bifid_in = Amawb_out) then
                     rst_ifid <= '0';
                     nb_nop <= "001";
-                    instruction_pointer <= instruction_pointer;
+                    instruction_pointer <= instruction_pointer - X"01";
+                else 
+                    instruction_pointer <= instruction_pointer + X"01";
+                    rst_ifid <= '1';
                 end if;
             else 
                 instruction_pointer <= instruction_pointer + X"01";
