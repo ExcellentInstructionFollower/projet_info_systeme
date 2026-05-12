@@ -10,7 +10,8 @@ architecture Behavioral of test_processor is
 
     component processor is
     Port (
-        CLK, RST : std_logic
+        CLK, RST : in std_logic;
+        Output : out std_logic
      );
 end component;
 

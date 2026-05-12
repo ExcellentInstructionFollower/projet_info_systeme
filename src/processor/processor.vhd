@@ -4,7 +4,8 @@ use IEEE.STD_LOGIC_SIGNED.ALL;
 
 entity processor is
     Port (
-        CLK, RST : std_logic
+        CLK, RST : in std_logic;
+        Output : out std_logic
      );
 end processor;
 
@@ -76,7 +77,9 @@ architecture Behavioral of processor is
     signal Aifid_out, Bifid_out, Cifid_out, OPifid_out: std_logic_vector(7 downto 0);
     
     --signals DI/EX (ID/EX)
-    signal LC_execute : std_logic;
+    signal LC_execute : std_logic_vector(2 downto 0);
+    signal select_execute : std_logic;
+    signal alu_to_mux : std_logic_vector(7 downto 0);
     signal Bidex_in, Cidex_in: std_logic_vector(7 downto 0);
     signal Aidex_out, Bidex_out, Cidex_out, OPidex_out: std_logic_vector(7 downto 0);
     
@@ -109,6 +112,24 @@ begin
         Aout=> Aifid_in,
         Bout=> Bifid_in,
         Cout=> Cifid_in
+    );
+    
+    uut_alu : ALU PORT MAP (
+        A   => Bidex_out,
+        B   => Cidex_out,
+        Ctrl_ALU      => LC_execute,
+        S   => alu_to_mux,
+        N   => open,
+        O   => open,
+        Z   => open,
+        C   => open
+    );
+    
+    uut_mux_alu : mux PORT MAP (
+        InA => Bidex_out,
+        InB => alu_to_mux,
+        S => Bexma_in,
+        SelectA => select_execute
     );
     
     uut_registers: register_bank PORT MAP (
@@ -153,13 +174,13 @@ begin
         Bout => Bidex_out,
         Cout => Cidex_out,
         OPout => OPidex_out,
-        RST => rst
+        RST => rst_ifid
     );
     
     uut_EXMA: pipeline_buffer PORT MAP(
         CLK => clk,
         Ain => Aidex_out,
-        Bin => Bidex_out,
+        Bin => Bexma_in,
         Cin => Cexma_in,
         OPin => OPidex_out,
         Aout => Aexma_out,
@@ -184,7 +205,7 @@ begin
     
     
 
-    IFID_process : process(CLK) 
+    IF_process : process(CLK) 
     begin
         if rising_edge(CLK) then
             if (RST = '0') then
@@ -195,6 +216,7 @@ begin
                 rst_ifid <= '0';
                 nb_nop <= nb_nop - "001";
                 instruction_pointer <= instruction_pointer;
+            --Gestion des aléas TODO : compléter conditions/écrire fonction
             elsif (OPifid_in = X"05") then
                 if ((OPifid_out = X"05" or OPifid_out = X"06") and Bifid_in = Aifid_out) then
                     rst_ifid <= '0';
@@ -216,6 +238,7 @@ begin
                     instruction_pointer <= instruction_pointer + X"01";
                     rst_ifid <= '1';
                 end if;
+                
             else 
                 instruction_pointer <= instruction_pointer + X"01";
                 rst_ifid <= '1';
@@ -224,33 +247,53 @@ begin
         
     end process;
     
-    IDEX_process : process(OPifid_out) 
+    ID_process : process(OPifid_out) 
     begin
-        if (OPifid_out = X"05") then
-            select_decode <= '0';
-        else
-            select_decode <= '1';
-        
-        end if;     
+        --if rising_edge(CLK) then
+            if (OPifid_out = X"06" or OPifid_out = X"0d") then
+                select_decode <= '1';
+            else
+                select_decode <= '0';
+            
+            end if;  
+        --end if;   
     
     end process;
     
-    EXMA_process : process(CLK) 
+    EX_process : process(OPidex_out) 
+    begin
+        --if rising_edge(CLK) then
+            if (OPidex_out = X"01" or OPidex_out = X"02" or OPidex_out = X"03" or OPidex_out = X"04") then
+                select_execute<= '0';
+            else
+                select_execute<= '1';
+            
+            end if; 
+            LC_execute <= OPidex_out(2 downto 0);
+        --end if;
+        
+    end process;
+    
+    MA_process : process(CLK) 
     begin
         if rising_edge(CLK) then
         end if;
         
     end process;
     
-    MAWB_process : process(OPmawb_out) 
+    WB_process : process(OPmawb_out) 
     begin
-        if (OPmawb_out = X"06" or OPmawb_out = X"05") then
-            LC_writeback <= '1';
-        else
-            LC_writeback <= '0';
-        
-        end if;  
+        --if rising_edge(CLK) then
+            if (OPmawb_out >= X"01" and OPmawb_out <= X"0d" and OPmawb_out /= X"0c") then
+                LC_writeback <= '1';
+            else
+                LC_writeback <= '0';
+            
+            end if;  
+        --end if;
         
     end process;
+    
+    Output <= Amawb_out(0);
 
 end Behavioral;

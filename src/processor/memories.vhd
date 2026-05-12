@@ -32,7 +32,7 @@ begin
 
     process(clk)
     begin
-        if rising_edge(clk) then
+        if falling_edge(clk) then --so that B catches up to the other signals in MAWB
             if rw = '1' then
                 data_out <= memory(to_integer(unsigned(addr)));
             end if;
@@ -65,6 +65,9 @@ architecture rtl of inst_memory is
         2 => X"05060544",
         3 => X"00000000",
         4 => X"FFFFFFFF",
+        5 => X"01070502",
+        6 => X"02080205",
+        7 => X"03090205",
         others => (others => '0')
     );
 

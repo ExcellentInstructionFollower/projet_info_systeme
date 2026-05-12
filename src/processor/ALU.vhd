@@ -7,7 +7,7 @@ use IEEE.STD_LOGIC_SIGNED.ALL;
 entity alu is
     port(
         A, B : in  std_logic_vector(7 downto 0);
-        Ctrl_ALU   : in  std_logic_vector(2 downto 0); -- 000 = Add, 001 = Sub, 010 = MUL, 011 = DIV
+        Ctrl_ALU   : in  std_logic_vector(2 downto 0); -- 001 = Add, 011 = Sub, 010 = MUL, 100 = DIV
         S    : out std_logic_vector(7 downto 0);
         N, O, Z, C   : out std_logic
     );
@@ -20,8 +20,8 @@ begin
     Aext <= X"00" & A;
     Bext<= X"00" & B;
     
-    Sext  <= Aext + Bext when Ctrl_ALU = "000" else
-          Aext - Bext when Ctrl_ALU = "001" else
+    Sext  <= Aext + Bext when Ctrl_ALU = "001" else
+          Aext - Bext when Ctrl_ALU = "011" else
           A * B when Ctrl_ALU = "010" else
           --std_logic_vector(Aext / Bext) when Ctrl_ALU = "011" and Bext /= X"0000" else
           X"0000";
