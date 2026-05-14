@@ -18,7 +18,8 @@ architecture Behavioral of test_register_bank is
             rst   : in  std_logic;
             clk   : in  std_logic;
             QA    : out std_logic_vector(7 downto 0);
-            QB    : out std_logic_vector(7 downto 0)
+            QB    : out std_logic_vector(7 downto 0);
+            Q0    : out std_logic_vector(7 downto 0)
         );
     end component;
     
@@ -33,6 +34,7 @@ architecture Behavioral of test_register_bank is
     signal clk_test   : std_logic := '0';
     signal QA_test    : std_logic_vector(7 downto 0);
     signal QB_test    : std_logic_vector(7 downto 0);
+    signal Q0_test    : std_logic_vector(7 downto 0);
     
 begin
 
@@ -45,7 +47,8 @@ begin
         rst   => rst_test,
         clk   => clk_test,
         QA    => QA_test,
-        QB    => QB_test
+        QB    => QB_test,
+        Q0    => Q0_test
     );
 
     Clock_process : process

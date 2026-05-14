@@ -68,6 +68,8 @@ architecture rtl of inst_memory is
         5 => X"01070502",
         6 => X"02080205",
         7 => X"03090205",
+        8 => X"0e010500",
+        9 => X"0d0a0100",
         others => (others => '0')
     );
 

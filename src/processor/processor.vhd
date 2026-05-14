@@ -5,7 +5,7 @@ use IEEE.STD_LOGIC_SIGNED.ALL;
 entity processor is
     Port (
         CLK, RST : in std_logic;
-        Output : out std_logic
+        Output : out std_logic_vector(7 downto 0)
      );
 end processor;
 
@@ -21,7 +21,8 @@ architecture Behavioral of processor is
             rst   : in  std_logic;
             clk   : in  std_logic;
             QA    : out std_logic_vector(7 downto 0);
-            QB    : out std_logic_vector(7 downto 0)
+            QB    : out std_logic_vector(7 downto 0);
+            Q0    : out std_logic_vector(7 downto 0)
         );
     end component;
     
@@ -84,7 +85,8 @@ architecture Behavioral of processor is
     signal Aidex_out, Bidex_out, Cidex_out, OPidex_out: std_logic_vector(7 downto 0);
     
     --signals EX/Mem (EX/MA)
-    signal LC_memory : std_logic;
+    signal LC_memory, select_addr, select_data : std_logic;
+    signal mux_to_ram, ram_to_mux : std_logic_vector(7 downto 0);
     signal Bexma_in, Cexma_in: std_logic_vector(7 downto 0);
     signal Aexma_out, Bexma_out, Cexma_out, OPexma_out: std_logic_vector(7 downto 0);
     
@@ -100,9 +102,23 @@ begin
         clk     => clk,
         rst     => rst,
         rw      => LC_memory,
-        addr    => Bexma_out,
+        addr    => mux_to_ram,
         data_in => Bexma_out,
-        data_out=> Bmawb_in
+        data_out=> ram_to_mux
+    );
+    
+    uut_mux_addr : mux PORT MAP (
+        InA => Aexma_out,
+        InB => Bexma_out,
+        S => mux_to_ram,
+        SelectA => select_addr
+    );
+    
+    uut_mux_data : mux PORT MAP (
+        InA => ram_to_mux,
+        InB => Bexma_out,
+        S => Bmawb_in,
+        SelectA => select_data
     );
 
     uut_rom: inst_memory PORT MAP(
@@ -141,7 +157,8 @@ begin
         rst   => rst,
         clk   => clk,
         QA    => registers_to_mux,
-        QB    => Cidex_in
+        QB    => Cidex_in,
+        Q0    => Output
     );
     
     uut_mux_decode : mux PORT MAP(
@@ -193,7 +210,7 @@ begin
     uut_MAWB: pipeline_buffer PORT MAP(
         CLK => clk,
         Ain => Aexma_out,
-        Bin => Bexma_out,
+        Bin => Bmawb_in,
         Cin => Cmawb_in,
         OPin => OPexma_out,
         Aout => Amawb_out,
@@ -274,9 +291,19 @@ begin
         
     end process;
     
-    MA_process : process(CLK) 
+    MA_process : process(OPexma_out) 
     begin
-        if rising_edge(CLK) then
+        if (OPexma_out = X"0e") then
+            select_addr <= '1';
+            LC_memory <= '0';
+        else
+            select_addr <= '0';
+            LC_memory <= '1';
+        end if;
+        if(OPexma_out = X"0d") then
+            select_data <= '1';
+        else
+            select_data <= '0';
         end if;
         
     end process;
@@ -293,7 +320,5 @@ begin
         --end if;
         
     end process;
-    
-    Output <= Amawb_out(0);
 
 end Behavioral;

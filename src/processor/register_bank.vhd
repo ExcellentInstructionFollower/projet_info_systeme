@@ -12,7 +12,8 @@ entity register_bank is
         rst   : in  std_logic;                      -- actif bas
         clk   : in  std_logic;
         QA    : out std_logic_vector(7 downto 0);
-        QB    : out std_logic_vector(7 downto 0)
+        QB    : out std_logic_vector(7 downto 0);
+        Q0    : out std_logic_vector(7 downto 0)  
     );
 end register_bank;
 
@@ -23,6 +24,7 @@ architecture rtl of register_bank is
     
     signal data_read_a : std_logic_vector(7 downto 0);
     signal data_read_b : std_logic_vector(7 downto 0);
+    signal data_read_0 : std_logic_vector(7 downto 0);
 
 begin
     process(clk)
@@ -38,6 +40,7 @@ begin
 
     data_read_a <= regs(to_integer(unsigned(addrA)));
     data_read_b <= regs(to_integer(unsigned(addrB)));
+    data_read_0 <= regs(0);
     
     process(W, addrW, addrA, addrB, data, data_read_a, data_read_b)
     begin
@@ -51,6 +54,12 @@ begin
             QB <= data;
         else
             QB <= data_read_b;
+        end if;
+        
+        if (W = '1' and addrW = X"00") then
+            Q0 <= data;
+        else
+            Q0 <= data_read_0;
         end if;
     end process;
 end rtl;

@@ -11,7 +11,7 @@ architecture Behavioral of test_processor is
     component processor is
     Port (
         CLK, RST : in std_logic;
-        Output : out std_logic
+        Output : out std_logic_vector(7 downto 0)
      );
 end component;
 
@@ -19,12 +19,14 @@ end component;
     
     signal rst_test   : std_logic := '0';
     signal clk_test   : std_logic := '0';
+    signal Output_test : std_logic_vector(7 downto 0);
 
 begin
 
     uut_processor : processor PORT MAP (
         CLK => clk_test,
-        RST => rst_test
+        RST => rst_test,
+        Output => Output_test
     );
 
     Clock_process : process
